@@ -1,15 +1,20 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Loader2 } from 'lucide-react';
+import axios from 'axios'; // <-- Import axios
 import AuthLayout from '../components/auth/AuthLayout';
 import AuthInput from '../components/auth/AuthInput';
 import PasswordInput from '../components/auth/PasswordInput';
+
+// Define your backend URL (make sure it matches your server port, usually 5000)
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 export default function Login() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState(''); // <-- New state for backend errors
 
   const validate = () => {
     const newErrors = {};
@@ -22,15 +27,34 @@ export default function Login() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setApiError(''); // Clear previous errors
+    
     if (validate()) {
       setIsLoading(true);
-      // Simulate API call
-      setTimeout(() => {
+      
+      try {
+        // 1. Send POST request to our real Express backend
+        const response = await axios.post(`${API_URL}/auth/login`, {
+          email: formData.email,
+          password: formData.password
+        });
+        
+        // 2. Save the JWT token and User data to localStorage
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        
+        // 3. Redirect to dashboard
         setIsLoading(false);
         navigate('/dashboard');
-      }, 1500);
+        
+      } catch (error) {
+        setIsLoading(false);
+        // Safely extract the backend error message
+        const message = error.response?.data?.message || 'Failed to connect to server. Please try again.';
+        setApiError(message);
+      }
     }
   };
 
@@ -40,6 +64,14 @@ export default function Login() {
       subtitle="Sign in to access your emergency medical profile."
     >
       <form onSubmit={handleSubmit} className="space-y-5">
+        
+        {/* API Error Display */}
+        {apiError && (
+          <div className="p-3 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm font-semibold text-center animate-in fade-in">
+            {apiError}
+          </div>
+        )}
+
         <AuthInput
           label="Email Address"
           icon={Mail}
@@ -74,6 +106,8 @@ export default function Login() {
           {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign In"}
         </button>
 
+        {/* ... Rest of the component stays exactly the same (OR divider, Google button, etc.) ... */}
+        
         <div className="relative py-4">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-200"></div>
@@ -86,6 +120,7 @@ export default function Login() {
         <button 
           type="button" 
           disabled={isLoading}
+          onClick={() => alert("Google Sign-In is coming soon! Please use email and password for this prototype.")}
           className="w-full bg-white hover:bg-gray-50 border-2 border-gray-100 text-gray-700 py-3.5 rounded-xl font-bold transition-all active:scale-95 flex justify-center items-center gap-3"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">

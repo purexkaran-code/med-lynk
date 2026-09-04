@@ -1,16 +1,18 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Download, ExternalLink, ShieldAlert, Copy, CheckCircle2, QrCode as QrIcon } from 'lucide-react';
 
 export default function QRCodeDashboard() {
   const [copied, setCopied] = useState(false);
+  const location = useLocation(); 
   
-  // Mock Emergency ID for the MVP
-  const emergencyId = "MLK-7F82A9";
-  // The URL the QR code will point to (using a placeholder for the demo)
-  const emergencyUrl = `https://demo.med-lynk.com/emergency/${emergencyId}`;
+  // Grab the real ID from the router state, fallback to a demo ID if we navigated here directly
+  const emergencyId = location.state?.emergencyId || "MLK-DEMO";
   
-  // Free API to generate a real QR code image on the fly for the hackathon demo
+  // The URL the QR code will point to (Make sure this points to your frontend URL)
+  const emergencyUrl = `http://localhost:5173/emergency/${emergencyId}`;
+  
+  // Free API to generate a real QR code image
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(emergencyUrl)}&color=111827`;
 
   const handleCopyLink = () => {
@@ -20,8 +22,6 @@ export default function QRCodeDashboard() {
   };
 
   const handleDownload = () => {
-    // For the frontend demo, we'll just open the image in a new tab
-    // In a real app, this would trigger a canvas download
     window.open(qrImageUrl, '_blank');
   };
 
@@ -66,7 +66,6 @@ export default function QRCodeDashboard() {
         {/* Right Column: Actions and Information */}
         <div className="lg:col-span-3 space-y-6">
           
-          {/* Action Buttons */}
           <div className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm space-y-4">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h3>
             
@@ -88,37 +87,25 @@ export default function QRCodeDashboard() {
             </div>
 
             <Link 
-              to="/emergency"
+              to={`/emergency/${emergencyId}`}
               className="flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 px-6 py-4 rounded-xl font-bold transition-all active:scale-95 w-full border border-red-100 mt-4"
             >
               <ExternalLink className="w-5 h-5" /> Preview Emergency Profile
             </Link>
           </div>
 
-          {/* Security & Usage Info */}
           <div className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm">
             <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
               <ShieldAlert className="w-5 h-5 text-red-500" /> How to use this safely
             </h3>
-            
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center font-bold text-sm shrink-0 mt-0.5">1</div>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  <strong className="text-gray-900">Lock Screen Wallpaper:</strong> Set the downloaded QR code image as your phone's lock screen wallpaper so responders can scan it without unlocking your phone.
-                </p>
+                <p className="text-gray-600 text-sm leading-relaxed"><strong className="text-gray-900">Lock Screen Wallpaper:</strong> Set the downloaded QR code image as your phone's lock screen.</p>
               </li>
               <li className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center font-bold text-sm shrink-0 mt-0.5">2</div>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  <strong className="text-gray-900">Print it out:</strong> Keep a physical copy in your wallet behind your ID, or inside your car's glovebox.
-                </p>
-              </li>
-              <li className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center font-bold text-sm shrink-0 mt-0.5">3</div>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  <strong className="text-gray-900">Privacy Warning:</strong> Anyone who scans this code can see your critical medical information. Only place it where first responders are likely to look during an emergency.
-                </p>
+                <p className="text-gray-600 text-sm leading-relaxed"><strong className="text-gray-900">Privacy Warning:</strong> Anyone who scans this code can see your critical medical information.</p>
               </li>
             </ul>
           </div>

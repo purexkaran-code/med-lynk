@@ -1,7 +1,24 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Droplet, AlertTriangle, Pill, HeartPulse, QrCode, ShieldAlert, ArrowRight, CheckCircle2, Clock, PlusCircle, Mic } from 'lucide-react';
 
 export default function Dashboard() {
+  const [userName, setUserName] = useState('');
+
+  // Grab the real user's name when the dashboard loads
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        // Split the name to just get the first name
+        const firstName = user.name.split(' ')[0];
+        setUserName(firstName);
+      } catch (error) {
+        console.error("Error parsing user data", error);
+      }
+    }
+  }, []);
   
   const ProfileCompletionCard = () => (
     <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-pink-100 relative overflow-hidden group">
@@ -147,7 +164,8 @@ export default function Dashboard() {
       
       {/* Welcome Section */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Good morning, Karan 👋</h1>
+        {/* Dynamic Name is injected right here */}
+        <h1 className="text-3xl font-bold text-gray-900">Good morning, {userName || 'there'} 👋</h1>
         <p className="text-gray-500 mt-1 text-lg">Here's an overview of your emergency medical profile.</p>
       </div>
 

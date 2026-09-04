@@ -1,36 +1,65 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { AlertTriangle, Droplet, Pill, HeartPulse, Stethoscope, CheckCircle2, Pencil, QrCode } from 'lucide-react';
+import { AlertTriangle, Droplet, Pill, HeartPulse, Stethoscope, CheckCircle2, Pencil } from 'lucide-react';
+import axios from 'axios'; // <-- Important: we need axios to talk to the backend
 import ProfileProgress from '../components/profile/ProfileProgress';
 
-// Mock Structured Data (What the AI generated)
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Mock Structured Data (We updated this to perfectly match your MongoDB Schema)
 const MOCK_STRUCTURED_PROFILE = {
   bloodGroup: "O+",
   allergies: [
     { name: "Penicillin", severity: "Severe", reaction: "Anaphylaxis / Difficulty breathing" }
   ],
   medications: [
-    { name: "Asthma Inhaler", frequency: "As needed (carried always)" }
+    { name: "Asthma Inhaler", details: "As needed (carried always)" } // changed to 'details'
   ],
   conditions: [
     { name: "Asthma", status: "Active" }
   ],
   surgeries: [
-    { name: "Appendectomy", year: "2022", complications: "None" }
-  ]
+    { name: "Appendectomy", year: "2022" } // removed 'complications' to match DB schema
+  ],
+  emergencyContact: {
+    name: "Priya Sharma",
+    relation: "Spouse",
+    phone: "+91 98765 43210"
+  }
 };
 
 export default function ProfileReview() {
   const navigate = useNavigate();
   const [isConfirming, setIsConfirming] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     setIsConfirming(true);
-    // Simulate final API save
-    setTimeout(() => {
+    setError('');
+    
+    try {
+      // 1. Get the JWT token from storage so the backend knows who we are
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error("You must be logged in to save a profile.");
+      }
+
+      // 2. Send data to our protected backend route
+      const response = await axios.post(`${API_URL}/profile`, MOCK_STRUCTURED_PROFILE, {
+        headers: {
+          Authorization: `Bearer ${token}` // Pass the security token!
+        }
+      });
+
       setIsConfirming(false);
-      navigate('/qr'); // Route to the reward: their generated QR code!
-    }, 1500);
+      
+      // 3. Navigate to QR dashboard and pass the REAL Emergency ID we just generated!
+      navigate('/qr', { state: { emergencyId: response.data.profile.emergencyId } });
+      
+    } catch (err) {
+      setIsConfirming(false);
+      setError(err.response?.data?.message || err.message || "Failed to save profile.");
+    }
   };
 
   return (
@@ -44,6 +73,13 @@ export default function ProfileReview() {
       </div>
 
       <ProfileProgress currentStep={3} />
+
+      {/* Show API Errors if any */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm font-semibold animate-in fade-in text-center">
+          {error}
+        </div>
+      )}
 
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-sm mb-8 relative">
         {/* Warning Banner */}
@@ -97,7 +133,7 @@ export default function ProfileReview() {
               {MOCK_STRUCTURED_PROFILE.medications.map((med, i) => (
                 <div key={i} className="mb-2">
                   <p className="font-bold text-gray-900">{med.name}</p>
-                  <p className="text-sm text-gray-500">{med.frequency}</p>
+                  <p className="text-sm text-gray-500">{med.details}</p>
                 </div>
               ))}
             </div>
@@ -127,7 +163,6 @@ export default function ProfileReview() {
             {MOCK_STRUCTURED_PROFILE.surgeries.map((surg, i) => (
               <div key={i} className="mb-2">
                 <p className="font-bold text-gray-900">{surg.name} <span className="text-gray-400 font-medium">({surg.year})</span></p>
-                <p className="text-sm text-gray-500">Complications: {surg.complications}</p>
               </div>
             ))}
           </div>

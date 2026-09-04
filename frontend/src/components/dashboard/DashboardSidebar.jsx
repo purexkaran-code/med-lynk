@@ -1,7 +1,15 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { Home, Heart, Mic, QrCode, ShieldAlert, Settings, LogOut, Activity, X } from 'lucide-react';
 
 export default function DashboardSidebar({ isOpen, closeSidebar }) {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
+
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: Home },
     { name: 'Medical Profile', path: '/profile', icon: Heart },
@@ -47,7 +55,10 @@ export default function DashboardSidebar({ isOpen, closeSidebar }) {
       </nav>
 
       <div className="p-4 border-t border-gray-100">
-        <button className="flex items-center gap-3 px-4 py-3.5 w-full rounded-xl font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all">
+        <button 
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-4 py-3.5 w-full rounded-xl font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all"
+        >
           <LogOut className="w-5 h-5" />
           Logout
         </button>
