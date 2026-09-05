@@ -45,21 +45,19 @@ export default function Signup() {
       setIsLoading(true);
       
       try {
-        // Send POST request to register endpoint
+        // 1. Register the user
         const response = await axios.post(`${API_URL}/auth/register`, {
           name: formData.name,
           email: formData.email,
           password: formData.password
         });
         
-        // Save the JWT token and User data to localStorage
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
         
-        // Redirect to dashboard
+        // 2. Brand new users ALWAYS start at profile setup (0%)
         setIsLoading(false);
-        navigate('/dashboard');
-        
+        navigate('/profile-setup');
       } catch (error) {
         setIsLoading(false);
         const message = error.response?.data?.message || 'Failed to connect to server. Please try again.';

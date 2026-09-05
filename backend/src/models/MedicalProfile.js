@@ -5,14 +5,14 @@ const medicalProfileSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User', 
     required: true, 
-    unique: true // One profile per user
+    unique: true 
   },
   emergencyId: { 
     type: String, 
     required: true, 
     unique: true 
   },
-  bloodGroup: { type: String, default: 'Unknown' },
+  bloodGroup: { type: String, default: '' },
   allergies: [{
     name: String,
     severity: String,
@@ -34,6 +34,26 @@ const medicalProfileSchema = new mongoose.Schema({
     name: String,
     relation: String,
     phone: String
+  },
+  
+  // NEW: Dynamic Onboarding Tracking
+  questionnaire: {
+    type: Map,
+    of: String,
+    default: {}
+  },
+  completionPercentage: {
+    type: Number,
+    default: 0
+  },
+  onboardingStep: {
+    type: String,
+    enum: ['profile_setup', 'questionnaire', 'review', 'completed'],
+    default: 'profile_setup'
+  },
+  isProfileComplete: {
+    type: Boolean,
+    default: false
   }
 }, { timestamps: true });
 

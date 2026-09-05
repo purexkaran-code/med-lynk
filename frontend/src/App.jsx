@@ -11,6 +11,7 @@ import Questionnaire from './pages/Questionnaire';
 import ProfileReview from './pages/ProfileReview';
 import QRCodeDashboard from './pages/QRCodeDashboard';
 import EmergencyView from './pages/EmergencyView';
+import ProfileSetup from './pages/ProfileSetup';
 
 const MainLayout = () => (
   <div className="min-h-screen bg-gray-50 font-sans text-gray-900 flex flex-col selection:bg-pink-100 selection:text-pink-900">
@@ -44,6 +45,7 @@ function App() {
 
         {/* DASHBOARD ROUTES */}
         <Route element={<DashboardLayout />}>
+          <Route path="/profile-setup" element={<ProfileSetup />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<MedicalProfile />} />
           <Route path="/questionnaire" element={<Questionnaire />} />

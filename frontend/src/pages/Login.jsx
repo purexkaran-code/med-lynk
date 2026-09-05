@@ -35,20 +35,34 @@ export default function Login() {
       setIsLoading(true);
       
       try {
-        // 1. Send POST request to our real Express backend
+        // 1. Login the user
         const response = await axios.post(`${API_URL}/auth/login`, {
           email: formData.email,
           password: formData.password
         });
         
-        // 2. Save the JWT token and User data to localStorage
-        localStorage.setItem('token', response.data.token);
+        const token = response.data.token;
+        localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
         
-        // 3. Redirect to dashboard
-        setIsLoading(false);
-        navigate('/dashboard');
+        // 2. Fetch their real profile progress from the database
+        const profileRes = await axios.get(`${API_URL}/profile`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         
+        const profileData = profileRes.data.profile;
+        setIsLoading(false);
+
+        // 3. SMART REDIRECT: Send them exactly where they left off!
+        if (profileData.isProfileComplete) {
+          navigate('/dashboard');
+        } else if (profileData.onboardingStep === 'questionnaire') {
+          navigate('/questionnaire');
+        } else if (profileData.onboardingStep === 'review') {
+          navigate('/profile-review');
+        } else {
+          navigate('/profile-setup');
+        }
       } catch (error) {
         setIsLoading(false);
         // Safely extract the backend error message
