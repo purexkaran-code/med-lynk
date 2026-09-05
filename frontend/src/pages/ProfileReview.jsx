@@ -33,32 +33,19 @@ export default function ProfileReview() {
   const [error, setError] = useState('');
 
   const handleConfirm = async () => {
-    setIsConfirming(true);
-    setError('');
-    
     try {
-      // 1. Get the JWT token from storage so the backend knows who we are
       const token = localStorage.getItem('token');
       
-      if (!token) {
-        throw new Error("You must be logged in to save a profile.");
-      }
-
-      // 2. Send data to our protected backend route
-      const response = await axios.post(`${API_URL}/profile`, MOCK_STRUCTURED_PROFILE, {
-        headers: {
-          Authorization: `Bearer ${token}` // Pass the security token!
-        }
-      });
-
-      setIsConfirming(false);
+      // We send onboardingStep: 'completed' to trigger the 100% calculation in the backend!
+      await axios.post(`${API_URL}/profile`, 
+        { onboardingStep: 'completed' }, 
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       
-      // 3. Navigate to QR dashboard and pass the REAL Emergency ID we just generated!
-      navigate('/qr', { state: { emergencyId: response.data.profile.emergencyId } });
-      
-    } catch (err) {
-      setIsConfirming(false);
-      setError(err.response?.data?.message || err.message || "Failed to save profile.");
+      // Redirect to dashboard where it will now show 100% and "Emergency Profile Active"
+      navigate('/dashboard');
+    } catch (error) {
+      console.error("Error confirming profile:", error);
     }
   };
 
